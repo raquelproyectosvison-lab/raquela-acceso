@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso a contenido exclusivo · Raquela</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); max-width: 420px; width: 100%; padding: 40px 30px; }
+    .logo-circle { width: 56px; height: 56px; background: linear-gradient(135deg, #00c9b8, #00a896); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; font-weight: 700; color: white; }
+    h1 { font-size: 28px; font-weight: 700; color: #1a1a1a; text-align: center; margin-bottom: 12px; }
+    .subtitle { color: #666; text-align: center; font-size: 15px; margin-bottom: 32px; }
+    label { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px 16px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; }
+    input:focus { outline: none; border-color: #00c9b8; background: #f9fffe; }
+    button { width: 100%; padding: 14px 20px; font-size: 16px; font-weight: 600; background: #00c9b8; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #00a896; }
+    .message { margin-top: 20px; padding: 14px 16px; border-radius: 8px; text-align: center; display: none; }
+    .message.error { background: #fee; color: #c33; }
+    .message.success { background: #efe; color: #3c3; }
+    .info-box { background: #f0f0f0; padding: 16px; border-radius: 8px; font-size: 13px; color: #555; margin-top: 24px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div style="text-align: center;">
+    <div class="logo-circle">R</div>
+  </div>
+  <h1>Acceso Exclusivo</h1>
+  <p class="subtitle">Ingresa el código de tu producto para acceder a los contenidos</p>
+  <form id="accessForm">
+    <div style="margin-bottom: 24px;">
+      <label for="code">Código de producto:</label>
+      <input type="text" id="code" placeholder="Ej: RAQUELA-GOLD-001" required>
+    </div>
+    <button type="submit">Verificar acceso</button>
+    <div class="message" id="message"></div>
+  </form>
+  <div class="info-box">
+    💡 <strong>¿Dónde encuentro el código?</strong><br>
+    Está impreso en la caja de tu producto, junto al código QR.
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3lx2cGrAIAt979-p_gRoc7bOl-T38BhvwEhWouvXGljzT-vDPrvdcZxERkOKvCz8iRQ/exec";
+  const form = document.getElementById('accessForm');
+  const codeInput = document.getElementById('code');
+  const message = document.getElementById('message');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = codeInput.value.trim().toUpperCase();
+    if (!code) { showError('Por favor, ingresa un código'); return; }
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: new URLSearchParams({ code: code })
+      });
+      const result = await response.json();
+      if (result.success) {
+        showSuccess('¡Acceso concedido! Redirigiendo...');
+        setTimeout(() => { window.location.href = result.driveLink; }, 1500);
+      } else {
+        showError(result.message || 'Código no válido.');
+        codeInput.value = '';
+        codeInput.focus();
+      }
+    } catch (error) {
+      showError('Error de conexión. Intenta de nuevo.');
+    }
+  });
+
+  function showError(text) {
+    message.textContent = text;
+    message.className = 'message error';
+    message.style.display = 'block';
+  }
+
+  function showSuccess(text) {
+    message.textContent = text;
+    message.className = 'message success';
+    message.style.display = 'block';
+  }
+
+  codeInput.focus();
+</script>
+</body>
+</html>
